@@ -37,11 +37,7 @@ fun GameControls(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 游戏信息显示区域
-        GameInfoPanel(gameData = gameData)
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
+
         // 游戏状态和控制按钮
         GameActionButtons(
             gameState = gameData.gameState,
@@ -56,6 +52,11 @@ fun GameControls(
             onDirectionChange = onDirectionChange,
             enabled = gameData.gameState is GameState.Playing
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 游戏信息显示区域
+        GameInfoPanel(gameData = gameData)
+
     }
 }
 
