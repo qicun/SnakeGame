@@ -12,6 +12,11 @@ import org.example.project.snake.config.GameConfig
 import org.example.project.snake.config.GameMode
 import org.example.project.snake.config.Difficulty
 import org.example.project.snake.model.*
+import org.example.project.snake.data.GameDataRepository
+import org.example.project.snake.data.GameRecord
+import org.example.project.snake.data.PlayerStatistics
+import org.example.project.snake.data.StatisticsManager
+import org.example.project.snake.data.ReplayRecorder
 
 /**
  * 贪吃蛇游戏的ViewModel
@@ -28,11 +33,22 @@ class SnakeViewModel : ViewModel() {
     // 游戏引擎实例
     private var gameEngine = SnakeGameEngine(_gameConfig.value)
     
+    // 数据管理组件
+    private val statisticsManager = StatisticsManager(dataRepository)
+    private var replayRecorder: ReplayRecorder? = null
+    
     // 游戏循环协程Job，用于控制游戏循环的启动和停止
     private var gameLoopJob: Job? = null
     
     // 待处理的方向变更（用于缓冲用户输入）
     private var pendingDirection: Direction? = null
+    
+    // 游戏开始时间（用于计算游戏时长）
+    private var gameStartTime: Long = 0L
+    
+    // 玩家统计数据
+    private val _playerStatistics = MutableStateFlow<PlayerStatistics?>(null)
+    val playerStatistics: StateFlow<PlayerStatistics?> = _playerStatistics.asStateFlow()
     
     // 私有的可变状态流
     private val _gameData = MutableStateFlow(gameEngine.initializeGame())
@@ -59,6 +75,11 @@ class SnakeViewModel : ViewModel() {
             _gameConfig.value = newConfig
             gameEngine = SnakeGameEngine(newConfig)
             resetGame()
+            
+            // 异步保存配置
+            viewModelScope.launch {
+                saveGameConfig()
+            }
         }
     }
     
@@ -101,6 +122,12 @@ class SnakeViewModel : ViewModel() {
         // 如果游戏循环已经在运行，先停止它
         stopGameLoop()
         
+        // 记录游戏开始时间
+        gameStartTime = System.currentTimeMillis()
+        
+        // 初始化回放录制器
+        replayRecorder = ReplayRecorder(_gameConfig.value, "game_${gameStartTime}")
+        
         // 启动新的游戏循环
         gameLoopJob = viewModelScope.launch {
             while (true) {
@@ -119,6 +146,12 @@ class SnakeViewModel : ViewModel() {
                     // 更新游戏状态
                     val newData = gameEngine.updateGame(currentData, directionToUse)
                     _gameData.value = newData
+                    
+                    // 检查游戏是否结束
+                    if (newData.gameState is GameState.GameOver) {
+                        // 记录游戏结束
+                        recordGameEnd()
+                    }
                     
                     // 根据调整后的游戏速度延迟
                     delay(adjustedSpeed)
@@ -319,10 +352,128 @@ class SnakeViewModel : ViewModel() {
     }
     
     /**
+     * 加载游戏配置
+     */
+    private suspend fun loadGameConfig() {
+        try {
+            val savedConfig = dataRepository.getGameConfig()
+            _gameConfig.value = savedConfig
+            gameEngine = SnakeGameEngine(savedConfig)
+        } catch (e: Exception) {
+            // 使用默认配置
+            println("Failed to load game config: ${e.message}")
+        }
+    }
+    
+    /**
+     * 保存游戏配置
+     */
+    private suspend fun saveGameConfig() {
+        try {
+            dataRepository.saveGameConfig(_gameConfig.value)
+        } catch (e: Exception) {
+            println("Failed to save game config: ${e.message}")
+        }
+    }
+    
+    /**
+     * 加载玩家统计数据
+     */
+    private suspend fun loadPlayerStatistics() {
+        try {
+            val statistics = dataRepository.getPlayerStatistics()
+            _playerStatistics.value = statistics
+        } catch (e: Exception) {
+            println("Failed to load player statistics: ${e.message}")
+        }
+    }
+    
+    /**
+     * 记录游戏结束
+     */
+    private suspend fun recordGameEnd() {
+        try {
+            val currentData = _gameData.value
+            val gameState = currentData.gameState
+            
+            if (gameState is GameState.GameOver) {
+                // 创建游戏记录
+                val gameRecord = GameRecord(
+                    gameMode = _gameConfig.value.gameMode,
+                    difficulty = _gameConfig.value.difficulty,
+                    finalScore = gameState.finalScore,
+                    maxSnakeLength = currentData.snake.body.size,
+                    playTime = System.currentTimeMillis() - gameStartTime,
+                    foodEaten = gameState.finalScore / 10, // 简化计算
+                    effectsUsed = currentData.activeEffects.size,
+                    gameOverReason = gameState.reason
+                )
+                
+                // 使用统计管理器记录游戏结束
+                statisticsManager.recordGameEnd(gameRecord, _gameConfig.value)
+                
+                // 完成回放录制
+                replayRecorder?.finishRecording(
+                    playerName = "Player",
+                    finalScore = gameState.finalScore,
+                    finalSnakeLength = currentData.snake.body.size
+                )?.let { replayData ->
+                    dataRepository.saveReplayData(gameRecord.id, replayData)
+                }
+                
+                // 重新加载统计数据
+                loadPlayerStatistics()
+            }
+        } catch (e: Exception) {
+            println("Failed to record game end: ${e.message}")
+        }
+    }
+    
+    /**
+     * 获取游戏记录列表
+     */
+    suspend fun getGameRecords(limit: Int = 10): List<GameRecord> {
+        return try {
+            dataRepository.getGameRecords(limit)
+        } catch (e: Exception) {
+            println("Failed to get game records: ${e.message}")
+            emptyList()
+        }
+    }
+    
+    /**
+     * 获取排行榜
+     */
+    suspend fun getLeaderboard(limit: Int = 10) = try {
+        dataRepository.getLeaderboard(_gameConfig.value.gameMode, _gameConfig.value.difficulty, limit)
+    } catch (e: Exception) {
+        println("Failed to get leaderboard: ${e.message}")
+        emptyList()
+    }
+    
+    /**
+     * 清除所有数据
+     */
+    suspend fun clearAllData() {
+        try {
+            dataRepository.clearAllData()
+            _playerStatistics.value = null
+            loadPlayerStatistics()
+        } catch (e: Exception) {
+            println("Failed to clear all data: ${e.message}")
+        }
+    }
+    
+    /**
      * ViewModel清理时停止游戏循环
      */
     override fun onCleared() {
         super.onCleared()
         stopGameLoop()
+        
+        // 保存当前配置
+        viewModelScope.launch {
+            saveGameConfig()
+        }
     }
 }

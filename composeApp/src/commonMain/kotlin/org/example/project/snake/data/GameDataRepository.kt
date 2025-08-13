@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import org.example.project.snake.storage.PlatformStorage
-import org.example.project.snake.storage.StorageKeys
 import org.example.project.snake.config.GameConfig
 import org.example.project.snake.config.GameMode
 import org.example.project.snake.config.Difficulty
@@ -88,7 +87,7 @@ class GameDataRepositoryImpl(
             }
             
             val jsonString = json.encodeToString(records)
-            storage.saveString(StorageKeys.GAME_RECORDS, jsonString)
+            storage.putString(StorageKeys.GAME_RECORDS, jsonString)
             
             // 同时保存到排行榜
             val leaderboardEntry = LeaderboardEntry.fromGameRecord(record)
@@ -212,7 +211,7 @@ class GameDataRepositoryImpl(
             val limitedEntries = entries.take(500)
             
             val jsonString = json.encodeToString(limitedEntries)
-            storage.saveString(StorageKeys.LEADERBOARD_ENTRIES, jsonString)
+            storage.putString(StorageKeys.LEADERBOARD_ENTRIES, jsonString)
             
         } catch (e: Exception) {
             throw DataRepositoryException("Failed to save leaderboard entry", e)
@@ -268,7 +267,7 @@ class GameDataRepositoryImpl(
     override suspend fun saveGameConfig(config: GameConfig) = withContext(Dispatchers.Default) {
         try {
             val jsonString = json.encodeToString(config)
-            storage.saveString(StorageKeys.GAME_CONFIG, jsonString)
+            storage.putString(StorageKeys.GAME_CONFIG, jsonString)
             
             // 更新缓存
             cachedConfig = config
@@ -303,7 +302,7 @@ class GameDataRepositoryImpl(
         try {
             val key = "${StorageKeys.REPLAY_DATA}_$gameId"
             val jsonString = json.encodeToString(replayData)
-            storage.saveString(key, jsonString)
+            storage.putString(key, jsonString)
         } catch (e: Exception) {
             throw DataRepositoryException("Failed to save replay data", e)
         }
