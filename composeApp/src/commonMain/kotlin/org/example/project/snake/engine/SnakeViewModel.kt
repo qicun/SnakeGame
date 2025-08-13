@@ -8,17 +8,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.example.project.snake.config.GameConfig
+import org.example.project.snake.config.GameMode
+import org.example.project.snake.config.Difficulty
 import org.example.project.snake.model.*
 
 /**
  * 贪吃蛇游戏的ViewModel
  * 
  * 负责管理游戏状态、处理用户输入、控制游戏循环
+ * 支持多种游戏模式、难度级别和特效系统
  */
 class SnakeViewModel : ViewModel() {
     
+    // 当前游戏配置
+    private val _gameConfig = MutableStateFlow(GameConfig())
+    val gameConfig: StateFlow<GameConfig> = _gameConfig.asStateFlow()
+    
     // 游戏引擎实例
-    private val gameEngine = SnakeGameEngine()
+    private var gameEngine = SnakeGameEngine(_gameConfig.value)
     
     // 游戏循环协程Job，用于控制游戏循环的启动和停止
     private var gameLoopJob: Job? = null
@@ -42,6 +50,49 @@ class SnakeViewModel : ViewModel() {
     }
     
     /**
+     * 更新游戏配置
+     * 
+     * @param newConfig 新的游戏配置
+     */
+    fun updateGameConfig(newConfig: GameConfig) {
+        if (_gameConfig.value != newConfig) {
+            _gameConfig.value = newConfig
+            gameEngine = SnakeGameEngine(newConfig)
+            resetGame()
+        }
+    }
+    
+    /**
+     * 设置游戏模式
+     * 
+     * @param gameMode 新的游戏模式
+     */
+    fun setGameMode(gameMode: GameMode) {
+        val newConfig = _gameConfig.value.copy(gameMode = gameMode)
+        updateGameConfig(newConfig)
+    }
+    
+    /**
+     * 设置游戏难度
+     * 
+     * @param difficulty 新的游戏难度
+     */
+    fun setDifficulty(difficulty: Difficulty) {
+        val newConfig = _gameConfig.value.copy(difficulty = difficulty)
+        updateGameConfig(newConfig)
+    }
+    
+    /**
+     * 切换特效开关
+     * 
+     * @param enabled 是否启用特效
+     */
+    fun toggleEffects(enabled: Boolean) {
+        val newConfig = _gameConfig.value.copy(enableEffects = enabled)
+        updateGameConfig(newConfig)
+    }
+    
+    /**
      * 开始游戏
      * 
      * 启动游戏循环协程，开始定期更新游戏状态
@@ -57,8 +108,9 @@ class SnakeViewModel : ViewModel() {
                 
                 // 只有在游戏进行中才继续循环
                 if (currentData.gameState is GameState.Playing) {
-                    // 获取当前游戏速度
-                    val speed = currentData.gameState.speed
+                    // 获取当前游戏速度（可能被特效影响）
+                    val baseSpeed = currentData.gameState.speed
+                    val adjustedSpeed = _gameConfig.value.difficulty.calculateSpeed(baseSpeed)
                     
                     // 处理待处理的方向变更
                     val directionToUse = pendingDirection
@@ -68,8 +120,8 @@ class SnakeViewModel : ViewModel() {
                     val newData = gameEngine.updateGame(currentData, directionToUse)
                     _gameData.value = newData
                     
-                    // 根据游戏速度延迟
-                    delay(speed)
+                    // 根据调整后的游戏速度延迟
+                    delay(adjustedSpeed)
                 } else {
                     // 如果游戏不在进行中，延迟较长时间再检查
                     delay(100)
@@ -183,6 +235,31 @@ class SnakeViewModel : ViewModel() {
     }
     
     /**
+     * 获取当前活跃的特效列表
+     * 
+     * @return 活跃特效列表
+     */
+    fun getActiveEffects(): List<FoodEffect> {
+        return _gameData.value.activeEffects
+    }
+    
+    /**
+     * 获取剩余时间（时间挑战模式）
+     * 
+     * @return 剩余时间（秒），如果不是时间挑战模式返回null
+     */
+    fun getRemainingTime(): Int? {
+        if (_gameConfig.value.gameMode != GameMode.TIME_CHALLENGE) {
+            return null
+        }
+        
+        val currentData = _gameData.value
+        val elapsedTime = (System.currentTimeMillis() - currentData.gameStartTime) / 1000
+        val remainingTime = _gameConfig.value.timeLimitSeconds - elapsedTime.toInt()
+        return maxOf(0, remainingTime)
+    }
+    
+    /**
      * 检查游戏是否正在进行
      * 
      * @return 如果游戏正在进行返回true，否则返回false
@@ -207,6 +284,38 @@ class SnakeViewModel : ViewModel() {
      */
     fun isGameOver(): Boolean {
         return _gameData.value.gameState is GameState.GameOver
+    }
+    
+    /**
+     * 获取游戏结束原因
+     * 
+     * @return 游戏结束原因，如果游戏未结束返回null
+     */
+    fun getGameOverReason(): GameState.GameOverReason? {
+        val gameState = _gameData.value.gameState
+        return if (gameState is GameState.GameOver) {
+            gameState.reason
+        } else {
+            null
+        }
+    }
+    
+    /**
+     * 获取当前游戏模式的显示名称
+     * 
+     * @return 游戏模式显示名称
+     */
+    fun getCurrentGameModeDisplayName(): String {
+        return _gameConfig.value.gameMode.displayName
+    }
+    
+    /**
+     * 获取当前难度的显示名称
+     * 
+     * @return 难度显示名称
+     */
+    fun getCurrentDifficultyDisplayName(): String {
+        return _gameConfig.value.difficulty.displayName
     }
     
     /**
