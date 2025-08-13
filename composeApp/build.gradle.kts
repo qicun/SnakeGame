@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    kotlin("plugin.serialization") version "1.9.23"
 }
 
 kotlin {
@@ -43,6 +44,15 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            
+            // 序列化支持
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            
+            // 日期时间支持
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+            
+            // 协程支持
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

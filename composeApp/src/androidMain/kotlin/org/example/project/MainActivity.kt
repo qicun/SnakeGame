@@ -6,11 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import org.example.project.snake.di.ViewModelFactory
+import org.example.project.snake.storage.PlatformStorage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // 初始化ViewModelFactory
+        val platformStorage = PlatformStorage(this)
+        ViewModelFactory.initialize(platformStorage)
 
         setContent {
             App()
