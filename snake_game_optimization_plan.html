@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇游戏优化规划</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        h1, h2, h3 {
+            color: #2E7D32;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .feature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .feature-list li:before {
+            content: "🐍";
+            margin-right: 10px;
+        }
+        .priority {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .high {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+        .medium {
+            background-color: #fff9c4;
+            color: #f57f17;
+        }
+        .low {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .architecture-diagram {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            display: block;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .timeline {
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .timeline-item {
+            display: flex;
+            margin-bottom: 15px;
+            border-left: 3px solid #4CAF50;
+            padding-left: 20px;
+            position: relative;
+        }
+        .timeline-item:before {
+            content: "";
+            width: 15px;
+            height: 15px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: absolute;
+            left: -9px;
+            top: 0;
+        }
+        .timeline-phase {
+            width: 150px;
+            font-weight: bold;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .code-example {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>贪吃蛇游戏优化与扩展规划</h1>
+        <p>Kotlin Multiplatform 跨平台游戏项目</p>
+    </header>
+
+    <section>
+        <h2>项目概述</h2>
+        <p>
+            这是一个使用 Kotlin Multiplatform 和 Compose Multiplatform 构建的跨平台贪吃蛇游戏，
+            目前已实现基础功能，支持 Android 和 iOS 平台。本文档提供了项目的优化和扩展规划。
+        </p>
+    </section>
+
+    <section>
+        <h2>当前架构分析</h2>
+        
+        <div class="architecture-diagram">
+            <svg width="760" height="400" xmlns="http://www.w3.org/2000/svg">
+                <!-- 背景层 -->
+                <rect x="10" y="10" width="740" height="380" rx="10" ry="10" fill="#f8f9fa" stroke="#ddd" stroke-width="1"/>
+                
+                <!-- 标题 -->
+                <text x="380" y="40" font-family="Arial" font-size="20" text-anchor="middle" fill="#333">贪吃蛇游戏架构</text>
+                
+                <!-- 数据模型层 -->
+                <rect x="50" y="70" width="660" height="80" rx="5" ry="5" fill="#e3f2fd" stroke="#90caf9" stroke-width="2"/>
+                <text x="380" y="95" font-family="Arial" font-size="16" text-anchor="middle" fill="#1565c0">数据模型层 (Model)</text>
+                
+                <rect x="70" y="110" width="100" height="30" rx="5" ry="5" fill="#bbdefb" stroke="#64b5f6" stroke-width="1"/>
+                <text x="120" y="130" font-family="Arial" font-size="12" text-anchor="middle">Position</text>
+                
+                <rect x="190" y="110" width="100" height="30" rx="5" ry="5" fill="#bbdefb" stroke="#64b5f6" stroke-width="1"/>
+                <text x="240" y="130" font-family="Arial" font-size="12" text-anchor="middle">Direction</text>
+                
+                <rect x="310" y="110" width="100" height="30" rx="5" ry="5" fill="#bbdefb" stroke="#64b5f6" stroke-width="1"/>
+                <text x="360" y="130" font-family="Arial" font-size="12" text-anchor="middle">GameState</text>
+                
+                <rect x="430" y="110" width="100" height="30" rx="5" ry="5" fill="#bbdefb" stroke="#64b5f6" stroke-width="1"/>
+                <text x="480" y="130" font-family="Arial" font-size="12" text-anchor="middle">Snake</text>
+                
+                <rect x="550" y="110" width="100" height="30" rx="5" ry="5" fill="#bbdefb" stroke="#64b5f6" stroke-width="1"/>
+                <text x="600" y="130" font-family="Arial" font-size="12" text-anchor="middle">Food</text>
+                
+                <!-- 游戏引擎层 -->
+                <rect x="50" y="170" width="660" height="80" rx="5" ry="5" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2"/>
+                <text x="380" y="195" font-family="Arial" font-size="16" text-anchor="middle" fill="#2e7d32">游戏引擎层 (Engine)</text>
+                
+                <rect x="150" y="210" width="200" height="30" rx="5" ry="5" fill="#c8e6c9" stroke="#81c784" stroke-width="1"/>
+                <text x="250" y="230" font-family="Arial" font-size="12" text-anchor="middle">SnakeGameEngine</text>
+                
+                <rect x="410" y="210" width="200" height="30" rx="5" ry="5" fill="#c8e6c9" stroke="#81c784" stroke-width="1"/>
+                <text x="510" y="230" font-family="Arial" font-size="12" text-anchor="middle">SnakeViewModel</text>
+                
+                <!-- UI层 -->
+                <rect x="50" y="270" width="660" height="80" rx="5" ry="5" fill="#fff3e0" stroke="#ffcc80" stroke-width="2"/>
+                <text x="380" y="295" font-family="Arial" font-size="16" text-anchor="middle" fill="#ef6c00">UI层 (Compose UI)</text>
+                
+                <rect x="70" y="310" width="150" height="30" rx="5" ry="5" fill="#ffe0b2" stroke="#ffb74d" stroke-width="1"/>
+                <text x="145" y="330" font-family="Arial" font-size="12" text-anchor="middle">GameCanvas</text>
+                
+                <rect x="240" y="310" width="150" height="30" rx="5" ry="5" fill="#ffe0b2" stroke="#ffb74d" stroke-width="1"/>
+                <text x="315" y="330" font-family="Arial" font-size="12" text-anchor="middle">GameControls</text>
+                
+                <rect x="410" y="310" width="150" height="30" rx="5" ry="5" fill="#ffe0b2" stroke="#ffb74d" stroke-width="1"/>
+                <text x="485" y="330" font-family="Arial" font-size="12" text-anchor="middle">SnakeGameScreen</text>
+                
+                <rect x="580" y="310" width="100" height="30" rx="5" ry="5" fill="#ffe0b2" stroke="#ffb74d" stroke-width="1"/>
+                <text x="630" y="330" font-family="Arial" font-size="12" text-anchor="middle">App</text>
+                
+                <!-- 连接线 -->
+                <!-- 模型层到引擎层 -->
+                <line x1="380" y1="150" x2="380" y2="170" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                
+                <!-- 引擎层到UI层 -->
+                <line x1="380" y1="250" x2="380" y2="270" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+            </svg>
+        </div>
+        
+        <h3>核心工作流程</h3>
+        <ol>
+            <li><strong>游戏初始化</strong>：ViewModel创建游戏引擎，初始化游戏数据，启动游戏循环</li>
+            <li><strong>游戏循环</strong>：协程定期更新游戏状态，处理移动、碰撞和食物消费</li>
+            <li><strong>用户交互</strong>：输入被传递到ViewModel，验证后在下一循环处理</li>
+            <li><strong>状态管理</strong>：游戏在Playing、Paused、GameOver三种状态间切换</li>
+        </ol>
+    </section>
+
+    <div class="container">
+        <div class="section">
+            <h2>功能扩展规划</h2>
+            <ul class="feature-list">
+                <li>
+                    多种游戏模式
+                    <span class="priority high">高优先级</span>
+                </li>
+                <li>
+                    特殊食物效果
+                    <span class="priority high">高优先级</span>
+                </li>
+                <li>
+                    游戏设置（难度、速度、网格大小）
+                    <span class="priority medium">中优先级</span>
+                </li>
+                <li>
+                    成就系统和排行榜
+                    <span class="priority medium">中优先级</span>
+                </li>
+                <li>
+                    多玩家模式
+                    <span class="priority low">低优先级</span>
+                </li>
+            </ul>
+            
+            <h3>多种游戏模式详细设计</h3>
+            <table>
+                <tr>
+                    <th>模式名称</th>
+                    <th>描述</th>
+                    <th>实现复杂度</th>
+                </tr>
+                <tr>
+                    <td>经典模式</td>
+                    <td>当前实现，碰墙或自身游戏结束</td>
+                    <td>已完成</td>
+                </tr>
+                <tr>
+                    <td>无墙模式</td>
+                    <td>蛇可以穿越边界，从另一侧出现</td>
+                    <td>简单</td>
+                </tr>
+                <tr>
+                    <td>障碍物模式</td>
+                    <td>游戏区域中有静态障碍物</td>
+                    <td>中等</td>
+                </tr>
+                <tr>
+                    <td>时间挑战</td>
+                    <td>限时收集尽可能多的食物</td>
+                    <td>中等</td>
+                </tr>
+                <tr>
+                    <td>迷宫模式</td>
+                    <td>在迷宫中移动蛇，寻找出口</td>
+                    <td>复杂</td>
+                </tr>
+            </table>
+            
+            <h3>特殊食物效果</h3>
+            <div class="code-example">
+// 食物类型枚举
+enum class FoodType {
+    REGULAR,    // 普通食物，增加1分，蛇长度+1
+    BONUS,      // 奖励食物，增加5分，蛇长度+1
+    SPEED_UP,   // 加速食物，临时提高蛇的移动速度
+    SPEED_DOWN, // 减速食物，临时降低蛇的移动速度
+    GHOST,      // 幽灵食物，临时允许穿墙或穿过自身
+    SHRINK      // 缩小食物，减少蛇的长度
+}
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>技术优化规划</h2>
+            <ul class="feature-list">
+                <li>
+                    性能优化（渲染和碰撞检测）
+                    <span class="priority high">高优先级</span>
+                </li>
+                <li>
+                    依赖注入和单元测试
+                    <span class="priority high">高优先级</span>
+                </li>
+                <li>
+                    游戏数据持久化
+                    <span class="priority medium">中优先级</span>
+                </li>
+                <li>
+                    动画和视觉效果
+                    <span class="priority medium">中优先级</span>
+                </li>
+                <li>
+                    声音效果和背景音乐
+                    <span class="priority low">低优先级</span>
+                </li>
+            </ul>
+            
+            <h3>性能优化方案</h3>
+            <p>当前游戏引擎在每个游戏循环中都会创建新的游戏数据对象，可以通过以下方式优化：</p>
+            <div class="code-example">
+// 优化前
+val newData = gameEngine.updateGame(currentData, directionToUse)
+_gameData.value = newData
+
+// 优化后
+gameEngine.updateGame(currentData, directionToUse, _gameData)
+            </div>
+            
+            <h3>依赖注入实现</h3>
+            <p>使用Koin进行依赖注入，简化组件创建和测试：</p>
+            <div class="code-example">
+// 添加Koin依赖
+implementation("io.insert-koin:koin-core:3.4.0")
+implementation("io.insert-koin:koin-androidx-compose:3.4.0")
+
+// 定义模块
+val gameModule = module {
+    single { SnakeGameEngine(gameWidth = 20, gameHeight = 20) }
+    viewModel { SnakeViewModel(get()) }
+}
+            </div>
+            
+            <h3>数据持久化设计</h3>
+            <table>
+                <tr>
+                    <th>存储项</th>
+                    <th>存储方式</th>
+                    <th>平台实现</th>
+                </tr>
+                <tr>
+                    <td>最高分</td>
+                    <td>键值存储</td>
+                    <td>Settings/UserDefaults</td>
+                </tr>
+                <tr>
+                    <td>游戏设置</td>
+                    <td>键值存储</td>
+                    <td>Settings/UserDefaults</td>
+                </tr>
+                <tr>
+                    <td>游戏进度</td>
+                    <td>序列化对象</td>
+                    <td>文件存储</td>
+                </tr>
+                <tr>
+                    <td>排行榜</td>
+                    <td>结构化存储</td>
+                    <td>SQLite/Realm</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>跨平台增强</h2>
+        <div class="container">
+            <div class="section">
+                <h3>平台特定优化</h3>
+                <ul class="feature-list">
+                    <li>
+                        屏幕适配（不同尺寸和方向）
+                        <span class="priority high">高优先级</span>
+                    </li>
+                    <li>
+                        平台特定输入处理
+                        <span class="priority medium">中优先级</span>
+                    </li>
+                    <li>
+                        深色模式支持
+                        <span class="priority medium">中优先级</span>
+                    </li>
+                    <li>
+                        平台特定动画优化
+                        <span class="priority low">低优先级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>扩展平台支持</h3>
+                <ul class="feature-list">
+                    <li>
+                        桌面平台支持（Windows/macOS/Linux）
+                        <span class="priority medium">中优先级</span>
+                    </li>
+                    <li>
+                        网页版支持（JS/WASM）
+                        <span class="priority low">低优先级</span>
+                    </li>
+                </ul>
+                
+                <div class="code-example">
+// 添加桌面平台支持
+kotlin {
+    jvm("desktop") {
+        compilations.all {
+            kotlinOptions.jvmTarget = "11"
+        }
+    }
+    
+    sourceSets {
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+            }
+        }
+    }
+}
+
+// 添加JS/WASM支持
+kotlin {
+    js(IR) {
+        browser()
+        binaries.executable()
+    }
+    
+    wasm {
+        browser()
+    }
+}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <section class="timeline">
+        <h2>实施时间线</h2>
+        
+        <div class="timeline-item">
+            <div class="timeline-phase">阶段1（2周）</div>
+            <div class="timeline-content">
+                <h4>核心功能扩展</h4>
+                <ul>
+                    <li>实现多种游戏模式（无墙模式、障碍物模式）</li>
+                    <li>添加特殊食物效果</li>
+                    <li>实现游戏设置界面</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="timeline-item">
+            <div class="timeline-phase">阶段2（2周）</div>
+            <div class="timeline-content">
+                <h4>技术优化</h4>
+                <ul>
+                    <li>引入依赖注入（Koin）</li>
+                    <li>实现游戏数据持久化</li>
+                    <li>添加单元测试</li>
+                    <li>性能优化（渲染和碰撞检测）</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="timeline-item">
+            <div class="timeline-phase">阶段3（2周）</div>
+            <div class="timeline-content">
+                <h4>UI/UX增强</h4>
+                <ul>
+                    <li>添加动画效果</li>
+                    <li>改进视觉设计</li>
+                    <li>添加声音效果</li>
+                    <li>支持深色模式</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="timeline-item">
+            <div class="timeline-phase">阶段4（2周）</div>
+            <div class="timeline-content">
+                <h4>跨平台扩展</h4>
+                <ul>
+                    <li>屏幕适配优化</li>
+                    <li>添加桌面平台支持</li>
+                    <li>平台特定优化</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    
+    <section>
+        <h2>结论</h2>
+        <p>
+            贪吃蛇游戏项目已经建立了良好的基础架构，通过本文档提出的优化和扩展规划，
+            可以将其发展成为一个功能丰富、性能优秀、用户体验良好的跨平台游戏。
+            建议按照时间线逐步实施，优先完成核心功能扩展和技术优化，然后再进行UI/UX增强和跨平台扩展。
+        </p>
+    </section>
+    
+    <footer style="text-align: center; margin-top: 50px; color: #666;">
+        <p>© 2025 贪吃蛇游戏项目团队</p>
+    </footer>
+</body>
+</html>
