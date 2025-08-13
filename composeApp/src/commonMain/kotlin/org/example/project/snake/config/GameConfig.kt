@@ -21,10 +21,20 @@ data class GameConfig(
     val gameHeight: Int = 20,
     val gameMode: GameMode = GameMode.CLASSIC,
     val difficulty: Difficulty = Difficulty.NORMAL,
-    val initialSpeed: Long = 500L,
     val enableEffects: Boolean = true,
-    val maxObstacles: Int = 5,
-    val timeLimitSeconds: Int = 120
+    val timeLimitSeconds: Int = 120,
+    val initialSnakeLength: Int = 3,
+    val baseSpeed: Long = 300L,
+    
+    // 新增的UI和显示设置
+    val showGrid: Boolean = false,
+    val enableAnimations: Boolean = true,
+    val enableParticles: Boolean = true,
+    
+    // 新增的音效设置
+    val enableSound: Boolean = true,
+    val enableVibration: Boolean = true,
+    val soundVolume: Float = 0.8f
 ) {
     
     /**
