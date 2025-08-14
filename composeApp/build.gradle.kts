@@ -11,13 +11,14 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-    
+    androidTarget()
+//    androidTarget {
+//        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+//        compilerOptions {
+//            jvmTarget.set(JvmTarget.JVM_11)
+//        }
+//    }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -28,9 +29,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -44,13 +45,13 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            
+
             // 序列化支持
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-            
+
             // 日期时间支持
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-            
+
             // 协程支持
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
         }
@@ -90,4 +91,3 @@ android {
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-

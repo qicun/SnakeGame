@@ -23,7 +23,7 @@ actual class PlatformStorage(private val context: Context) {
     private val editor: SharedPreferences.Editor
         get() = sharedPreferences.edit()
     
-    actual fun saveString(key: String, value: String) {
+    actual fun putString(key: String, value: String) {
         try {
             if (!StorageUtils.isValidKey(key)) {
                 throw StorageException("Invalid key: $key")
@@ -35,15 +35,15 @@ actual class PlatformStorage(private val context: Context) {
         }
     }
     
-    actual fun getString(key: String, defaultValue: String): String {
+    actual fun getString(key: String, defaultValue: String?): String? {
         return try {
-            sharedPreferences.getString(key, defaultValue) ?: defaultValue
+            sharedPreferences.getString(key, defaultValue)
         } catch (e: Exception) {
             throw StorageException("Failed to get string for key: $key", e)
         }
     }
     
-    actual fun saveInt(key: String, value: Int) {
+    actual fun putInt(key: String, value: Int) {
         try {
             if (!StorageUtils.isValidKey(key)) {
                 throw StorageException("Invalid key: $key")
@@ -63,7 +63,7 @@ actual class PlatformStorage(private val context: Context) {
         }
     }
     
-    actual fun saveLong(key: String, value: Long) {
+    actual fun putLong(key: String, value: Long) {
         try {
             if (!StorageUtils.isValidKey(key)) {
                 throw StorageException("Invalid key: $key")
@@ -83,7 +83,7 @@ actual class PlatformStorage(private val context: Context) {
         }
     }
     
-    actual fun saveFloat(key: String, value: Float) {
+    actual fun putFloat(key: String, value: Float) {
         try {
             if (!StorageUtils.isValidKey(key)) {
                 throw StorageException("Invalid key: $key")
@@ -103,7 +103,7 @@ actual class PlatformStorage(private val context: Context) {
         }
     }
     
-    actual fun saveBoolean(key: String, value: Boolean) {
+    actual fun putBoolean(key: String, value: Boolean) {
         try {
             if (!StorageUtils.isValidKey(key)) {
                 throw StorageException("Invalid key: $key")

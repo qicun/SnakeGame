@@ -4,13 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.example.project.snake.engine.SnakeViewModel
 import org.example.project.snake.ui.game.GameScreen
 import org.example.project.snake.ui.settings.SettingsScreen
@@ -47,6 +47,9 @@ fun MainScreen(
     var leaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) }
     var selectedGameMode by remember { mutableStateOf<GameMode?>(null) }
     var selectedDifficulty by remember { mutableStateOf<Difficulty?>(null) }
+    
+    // 协程作用域
+    val coroutineScope = rememberCoroutineScope()
     
     // 收集ViewModel状态
     val gameData by viewModel.gameData.collectAsState()
@@ -86,11 +89,15 @@ fun MainScreen(
         }
         
         MainScreenDestination.SETTINGS -> {
-            SettingsScreen(
-                gameConfig = gameConfig,
-                onConfigChange = viewModel::updateGameConfig,
-                onBackClick = { currentDestination = MainScreenDestination.GAME }
-            )
+        // 创建ThemeManager实例
+        val themeManager = remember { org.example.project.snake.theme.ThemeManager() }
+        
+        SettingsScreen(
+            gameConfig = gameConfig,
+            themeManager = themeManager,
+            onGameConfigChange = viewModel::updateGameConfig,
+            onBackClick = { currentDestination = MainScreenDestination.GAME }
+        )
         }
         
         MainScreenDestination.STATISTICS -> {
@@ -141,10 +148,10 @@ fun GameScreenWithNavigation(
                 title = { Text("贪吃蛇游戏") },
                 actions = {
                     IconButton(onClick = onNavigateToStatistics) {
-                        Icon(Icons.Default.BarChart, contentDescription = "统计")
+                        Icon(Icons.Default.List, contentDescription = "统计")
                     }
                     IconButton(onClick = onNavigateToLeaderboard) {
-                        Icon(Icons.Default.Leaderboard, contentDescription = "排行榜")
+                        Icon(Icons.Default.List, contentDescription = "排行榜")
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "设置")

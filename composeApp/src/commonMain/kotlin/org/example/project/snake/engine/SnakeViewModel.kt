@@ -24,7 +24,9 @@ import org.example.project.snake.data.ReplayRecorder
  * 负责管理游戏状态、处理用户输入、控制游戏循环
  * 支持多种游戏模式、难度级别和特效系统
  */
-class SnakeViewModel : ViewModel() {
+class SnakeViewModel(
+    private val dataRepository: GameDataRepository
+) : ViewModel() {
     
     // 当前游戏配置
     private val _gameConfig = MutableStateFlow(GameConfig())
@@ -398,7 +400,7 @@ class SnakeViewModel : ViewModel() {
             
             if (gameState is GameState.GameOver) {
                 // 创建游戏记录
-                val gameRecord = GameRecord(
+                val gameRecord = GameRecord.create(
                     gameMode = _gameConfig.value.gameMode,
                     difficulty = _gameConfig.value.difficulty,
                     finalScore = gameState.finalScore,

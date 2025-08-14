@@ -1,11 +1,15 @@
 package org.example.project.snake.model
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Contextual
+
 /**
  * 表示游戏中的二维坐标位置
  * 
  * @param x 横坐标，表示在游戏网格中的列位置
  * @param y 纵坐标，表示在游戏网格中的行位置
  */
+@Serializable
 data class Position(
     val x: Int,
     val y: Int

@@ -74,7 +74,8 @@ sealed class GameState {
      */
     enum class GameOverReason {
         WALL_COLLISION,    // 撞墙
-        SELF_COLLISION     // 撞到自己
+        SELF_COLLISION,    // 撞到自己
+        TIME_UP           // 时间到
     }
     
     /**

@@ -12,9 +12,9 @@ import org.example.project.snake.storage.PlatformStorage
  * 
  * 提供通用的数据序列化和存储操作
  */
-class StorageUtils(private val storage: PlatformStorage) {
+class StorageUtils(val storage: PlatformStorage) {
     
-    private val json = Json {
+    val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -23,7 +23,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 保存可序列化对象
      */
-    suspend inline fun <reified T> saveObject(key: String, obj: T) = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> saveObject(key: String, obj: T): Unit = withContext(Dispatchers.Default) {
         try {
             val jsonString = json.encodeToString(obj)
             storage.putString(key, jsonString)
@@ -35,7 +35,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 读取可序列化对象
      */
-    suspend inline fun <reified T> loadObject(key: String, defaultValue: T): T = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> loadObject(key: String, defaultValue: T): T = withContext(Dispatchers.Default) {
         try {
             val jsonString = storage.getString(key, null)
             if (jsonString.isNullOrEmpty()) {
@@ -50,7 +50,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 保存对象列表
      */
-    suspend inline fun <reified T> saveList(key: String, list: List<T>) = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> saveList(key: String, list: List<T>): Unit = withContext(Dispatchers.Default) {
         try {
             val jsonString = json.encodeToString(list)
             storage.putString(key, jsonString)
@@ -63,7 +63,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 读取对象列表
      */
-    suspend inline fun <reified T> loadList(key: String): List<T> = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> loadList(key: String): List<T> = withContext(Dispatchers.Default) {
         try {
             val jsonString = storage.getString(key, null)
             if (jsonString.isNullOrEmpty()) {
@@ -78,7 +78,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 添加项目到列表
      */
-    suspend inline fun <reified T> addToList(key: String, item: T, maxSize: Int = 1000) = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> addToList(key: String, item: T, maxSize: Int = 1000): Unit = withContext(Dispatchers.Default) {
         try {
             val currentList = loadList<T>(key).toMutableList()
             currentList.add(0, item) // 添加到列表开头
@@ -97,7 +97,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 从列表中移除项目
      */
-    suspend inline fun <reified T> removeFromList(key: String, predicate: (T) -> Boolean) = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> removeFromList(key: String, noinline predicate: (T) -> Boolean): Unit = withContext(Dispatchers.Default) {
         try {
             val currentList = loadList<T>(key).toMutableList()
             currentList.removeAll(predicate)
@@ -110,7 +110,7 @@ class StorageUtils(private val storage: PlatformStorage) {
     /**
      * 更新列表中的项目
      */
-    suspend inline fun <reified T> updateInList(key: String, predicate: (T) -> Boolean, updater: (T) -> T) = withContext(Dispatchers.Default) {
+    internal suspend inline fun <reified T> updateInList(key: String, crossinline predicate: (T) -> Boolean, crossinline updater: (T) -> T): Unit = withContext(Dispatchers.Default) {
         try {
             val currentList = loadList<T>(key).toMutableList()
             val index = currentList.indexOfFirst(predicate)
@@ -188,7 +188,7 @@ class StorageUtils(private val storage: PlatformStorage) {
             var totalSize = 0L
             
             allKeys.forEach { key ->
-                val value = storage.getString(key, "")
+                val value = storage.getString(key, "") ?: ""
                 totalSize += value.toByteArray(Charsets.UTF_8).size
             }
             
@@ -207,7 +207,7 @@ class StorageUtils(private val storage: PlatformStorage) {
             val backupData = mutableMapOf<String, String>()
             
             allKeys.forEach { key ->
-                val value = storage.getString(key, "")
+                val value = storage.getString(key, "") ?: ""
                 if (value.isNotEmpty()) {
                     backupData[key] = value
                 }

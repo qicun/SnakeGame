@@ -14,7 +14,7 @@ expect class PlatformStorage {
      * @param key 存储键
      * @param value 要保存的字符串值
      */
-    fun saveString(key: String, value: String)
+    fun putString(key: String, value: String)
     
     /**
      * 获取字符串值
@@ -23,7 +23,7 @@ expect class PlatformStorage {
      * @param defaultValue 默认值
      * @return 存储的字符串值或默认值
      */
-    fun getString(key: String, defaultValue: String = ""): String
+    fun getString(key: String, defaultValue: String? = null): String?
     
     /**
      * 保存整数值
@@ -31,7 +31,7 @@ expect class PlatformStorage {
      * @param key 存储键
      * @param value 要保存的整数值
      */
-    fun saveInt(key: String, value: Int)
+    fun putInt(key: String, value: Int)
     
     /**
      * 获取整数值
@@ -48,7 +48,7 @@ expect class PlatformStorage {
      * @param key 存储键
      * @param value 要保存的长整数值
      */
-    fun saveLong(key: String, value: Long)
+    fun putLong(key: String, value: Long)
     
     /**
      * 获取长整数值
@@ -65,7 +65,7 @@ expect class PlatformStorage {
      * @param key 存储键
      * @param value 要保存的浮点数值
      */
-    fun saveFloat(key: String, value: Float)
+    fun putFloat(key: String, value: Float)
     
     /**
      * 获取浮点数值
@@ -82,7 +82,7 @@ expect class PlatformStorage {
      * @param key 存储键
      * @param value 要保存的布尔值
      */
-    fun saveBoolean(key: String, value: Boolean)
+    fun putBoolean(key: String, value: Boolean)
     
     /**
      * 获取布尔值

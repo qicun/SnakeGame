@@ -75,11 +75,12 @@ fun GameScreen(
         )
         
         // 游戏结束信息
-        if (gameData.gameState is GameState.GameOver) {
+        val currentGameState = gameData.gameState
+        if (currentGameState is GameState.GameOver) {
             Spacer(modifier = Modifier.height(16.dp))
             GameOverCard(
-                finalScore = gameData.gameState.finalScore,
-                reason = gameData.gameState.reason,
+                finalScore = currentGameState.finalScore,
+                reason = currentGameState.reason,
                 onRestart = viewModel::resetGame
             )
         }

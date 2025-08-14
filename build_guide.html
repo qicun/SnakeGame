@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game 构建指南</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            padding: 2px 4px;
+            color: #c7254e;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left: 6px solid #dc3545;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 6px solid #28a745;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        .step {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake Game 构建指南</h1>
+    <p>本指南详细介绍了如何为 Kotlin Multiplatform Snake Game 项目构建 Android APK 和 iOS 应用包。</p>
+
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Environment')">环境配置</button>
+        <button class="tablinks" onclick="openTab(event, 'Android')">Android 构建</button>
+        <button class="tablinks" onclick="openTab(event, 'iOS')">iOS 构建</button>
+        <button class="tablinks" onclick="openTab(event, 'Troubleshooting')">常见问题</button>
+        <button class="tablinks" onclick="openTab(event, 'Optimization')">优化建议</button>
+    </div>
+
+    <div id="Environment" class="tabcontent" style="display: block;">
+        <h2>环境配置</h2>
+        
+        <div class="step">
+            <h3>Android SDK 许可问题</h3>
+            <div class="error">
+                <p><strong>错误信息</strong>: You have not accepted the license agreements of the following SDK components</p>
+            </div>
+            <h4>解决方案：</h4>
+            <ol>
+                <li>运行 Android SDK Manager</li>
+                <li>接受所有许可协议</li>
+                <li>或者通过命令行接受：<code>yes | sdkmanager --licenses</code></li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>Kotlin 版本不兼容</h3>
+            <div class="error">
+                <p><strong>错误信息</strong>: Kotlin version that is used for building with Gradle (x.y.z) differs from the one bundled into the IDE plugin (a.b.c)</p>
+            </div>
+            <h4>解决方案：</h4>
+            <ol>
+                <li>在 <code>gradle.properties</code> 中设置 Kotlin 版本</li>
+                <li>更新 IDE 的 Kotlin 插件</li>
+                <li>确保项目和 IDE 使用相同的 Kotlin 版本</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="Optimization" class="tabcontent">
+        <h2>优化建议</h2>
+        
+        <div class="step">
+            <h3>Android APK 大小优化</h3>
+            <p>减小 APK 大小可以提高下载转化率和用户体验。</p>
+            <h4>实施步骤：</h4>
+            <ol>
+                <li>启用 R8/ProGuard：
+                <pre><code>android {
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+}</code></pre>
+                </li>
+                <li>启用资源压缩：
+                <pre><code>android {
+    buildTypes {
+        getByName("release") {
+            isShrinkResources = true
+        }
+    }
+}</code></pre>
+                </li>
+                <li>使用 WebP 格式图片</li>
+                <li>移除未使用的资源</li>
+                <li>配置 APK 拆分：
+                <pre><code>android {
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = false
+        }
+    }
+}</code></pre>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>构建变体管理</h3>
+            <p>为不同环境创建构建变体，便于开发和测试。</p>
+            <h4>实施步骤：</h4>
+            <pre><code>android {
+    flavorDimensions("environment")
+    
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "API_URL", "\"https://dev-api.example.com\"")
+        }
+        
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            buildConfigField("String", "API_URL", "\"https://staging-api.example.com\"")
+        }
+        
+        create("prod") {
+            dimension = "environment"
+            buildConfigField("String", "API_URL", "\"https://api.example.com\"")
+        }
+    }
+}</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>CI/CD 集成</h3>
+            <p>设置持续集成和部署流程，自动化构建和测试。</p>
+            <h4>GitHub Actions 示例：</h4>
+            <p>创建 <code>.github/workflows/android.yml</code> 文件：</p>
+            <pre><code>name: Android CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+        cache: gradle
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew composeApp:assembleDebug
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-debug
+        path: composeApp/build/outputs/apk/debug/composeApp-debug.apk</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>iOS 构建优化</h3>
+            <p>优化 iOS 应用构建过程和性能。</p>
+            <h4>实施步骤：</h4>
+            <ol>
+                <li>启用 Bitcode：在 Xcode 项目中启用 Bitcode 可以让 App Store 进一步优化应用</li>
+                <li>配置构建设置：
+                <pre><code>// 在 Xcode 中设置或通过 xcconfig 文件配置
+ENABLE_BITCODE = YES
+SWIFT_OPTIMIZATION_LEVEL = -O // 发布版本
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym // 发布版本</code></pre>
+                </li>
+                <li>使用 XCFrameworks：将 Kotlin 框架打包为 XCFramework 以支持多架构</li>
+                <li>配置自动签名和配置文件管理</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        function openSubTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            // 获取当前标签页下的子标签内容
+            tabcontent = evt.currentTarget.parentElement.nextElementSibling.parentElement.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            // 获取当前标签组中的所有标签
+            tablinks = evt.currentTarget.parentElement.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        function openSubSubTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            // 获取当前标签页下的子标签内容
+            tabcontent = evt.currentTarget.parentElement.nextElementSibling.parentElement.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            // 获取当前标签组中的所有标签
+            tablinks = evt.currentTarget.parentElement.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>
+            <span class="step-number">1</span>
+            <h3>JDK 配置</h3>
+            <p>项目需要 JDK 17 或更高版本。确保正确设置 JAVA_HOME 环境变量。</p>
+            
+            <div class="tab">
+                <button class="tablinks active" onclick="openSubTab(event, 'Windows-JDK')">Windows</button>
+                <button class="tablinks" onclick="openSubTab(event, 'MacOS-JDK')">macOS</button>
+                <button class="tablinks" onclick="openSubTab(event, 'Linux-JDK')">Linux</button>
+            </div>
+            
+            <div id="Windows-JDK" class="tabcontent" style="display: block;">
+                <h4>Windows 设置 JAVA_HOME</h4>
+                <ol>
+                    <li>右键点击"此电脑"，选择"属性"</li>
+                    <li>点击"高级系统设置"</li>
+                    <li>点击"环境变量"</li>
+                    <li>在"系统变量"部分，点击"新建"</li>
+                    <li>变量名输入 <code>JAVA_HOME</code></li>
+                    <li>变量值输入 JDK 安装路径，例如：<code>C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot</code></li>
+                    <li>确保 <code>Path</code> 变量包含 <code>%JAVA_HOME%\bin</code></li>
+                </ol>
+                <p>或者，您可以使用项目中提供的 <code>run_project.ps1</code> 脚本，它会自动尝试设置正确的 JAVA_HOME。</p>
+            </div>
+            
+            <div id="MacOS-JDK" class="tabcontent">
+                <h4>macOS 设置 JAVA_HOME</h4>
+                <p>在终端中运行以下命令：</p>
+                <pre><code>echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+                <p>或者，您可以使用项目中提供的 <code>run_project.sh</code> 脚本，它会自动尝试设置正确的 JAVA_HOME。</p>
+            </div>
+            
+            <div id="Linux-JDK" class="tabcontent">
+                <h4>Linux 设置 JAVA_HOME</h4>
+                <p>在终端中运行以下命令：</p>
+                <pre><code>echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk' >> ~/.bashrc
+source ~/.bashrc</code></pre>
+                <p>注意：JDK 路径可能因发行版而异，请根据实际安装路径调整。</p>
+                <p>或者，您可以使用项目中提供的 <code>run_project.sh</code> 脚本，它会自动尝试设置正确的 JAVA_HOME。</p>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            <h3>Android SDK 配置</h3>
+            <p>确保已安装 Android SDK 并设置了 ANDROID_HOME 环境变量。</p>
+            
+            <div class="tab">
+                <button class="tablinks active" onclick="openSubTab(event, 'Windows-SDK')">Windows</button>
+                <button class="tablinks" onclick="openSubTab(event, 'MacOS-SDK')">macOS</button>
+                <button class="tablinks" onclick="openSubTab(event, 'Linux-SDK')">Linux</button>
+            </div>
+            
+            <div id="Windows-SDK" class="tabcontent" style="display: block;">
+                <h4>Windows 设置 ANDROID_HOME</h4>
+                <ol>
+                    <li>右键点击"此电脑"，选择"属性"</li>
+                    <li>点击"高级系统设置"</li>
+                    <li>点击"环境变量"</li>
+                    <li>在"系统变量"部分，点击"新建"</li>
+                    <li>变量名输入 <code>ANDROID_HOME</code></li>
+                    <li>变量值输入 Android SDK 安装路径，例如：<code>C:\Users\YourUsername\AppData\Local\Android\Sdk</code></li>
+                </ol>
+            </div>
+            
+            <div id="MacOS-SDK" class="tabcontent">
+                <h4>macOS 设置 ANDROID_HOME</h4>
+                <p>在终端中运行以下命令：</p>
+                <pre><code>echo 'export ANDROID_HOME=$HOME/Library/Android/sdk' >> ~/.zshrc
+echo 'export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+            </div>
+            
+            <div id="Linux-SDK" class="tabcontent">
+                <h4>Linux 设置 ANDROID_HOME</h4>
+                <p>在终端中运行以下命令：</p>
+                <pre><code>echo 'export ANDROID_HOME=$HOME/Android/Sdk' >> ~/.bashrc
+echo 'export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools' >> ~/.bashrc
+source ~/.bashrc</code></pre>
+            </div>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            <h3>iOS 开发环境（仅 macOS）</h3>
+            <p>iOS 应用构建需要 macOS 系统和 Xcode。</p>
+            <ol>
+                <li>从 App Store 安装 Xcode</li>
+                <li>安装 Xcode 命令行工具：<code>xcode-select --install</code></li>
+                <li>确保已接受 Xcode 许可协议：<code>sudo xcodebuild -license accept</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="Android" class="tabcontent">
+        <h2>Android APK 构建</h2>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openSubTab(event, 'Android-Script')">使用脚本构建</button>
+            <button class="tablinks" onclick="openSubTab(event, 'Android-Manual')">手动构建</button>
+            <button class="tablinks" onclick="openSubTab(event, 'Android-Release')">构建 Release 版本</button>
+        </div>
+        
+        <div id="Android-Script" class="tabcontent" style="display: block;">
+            <h3>使用脚本构建 Android APK</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>Windows 平台</h4>
+                <ol>
+                    <li>打开 PowerShell</li>
+                    <li>导航到项目根目录</li>
+                    <li>运行脚本：<code>.\run_project.ps1</code></li>
+                    <li>在菜单中选择选项 <code>1: Build Android Debug APK</code></li>
+                </ol>
+                <p class="success">APK 将生成在 <code>composeApp/build/outputs/apk/debug/composeApp-debug.apk</code></p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>macOS/Linux 平台</h4>
+                <ol>
+                    <li>打开终端</li>
+                    <li>导航到项目根目录</li>
+                    <li>添加执行权限：<code>chmod +x run_project.sh</code></li>
+                    <li>运行脚本：<code>./run_project.sh</code></li>
+                    <li>在菜单中选择选项 <code>1: Build Android Debug APK</code></li>
+                </ol>
+                <p class="success">APK 将生成在 <code>composeApp/build/outputs/apk/debug/composeApp-debug.apk</code></p>
+            </div>
+        </div>
+        
+        <div id="Android-Manual" class="tabcontent">
+            <h3>手动构建 Android APK</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>设置 JAVA_HOME</h4>
+                <p>确保 JAVA_HOME 环境变量指向有效的 JDK 17 或更高版本安装目录。</p>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSubSubTab(event, 'Windows-JAVA')">Windows</button>
+                    <button class="tablinks" onclick="openSubSubTab(event, 'Unix-JAVA')">macOS/Linux</button>
+                </div>
+                
+                <div id="Windows-JAVA" class="tabcontent" style="display: block;">
+                    <pre><code>$env:JAVA_HOME = "C:\Path\To\Your\JDK"</code></pre>
+                </div>
+                
+                <div id="Unix-JAVA" class="tabcontent">
+                    <pre><code>export JAVA_HOME=/path/to/your/jdk</code></pre>
+                </div>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>构建 Debug APK</h4>
+                <p>在项目根目录运行以下命令：</p>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSubSubTab(event, 'Windows-Build')">Windows</button>
+                    <button class="tablinks" onclick="openSubSubTab(event, 'Unix-Build')">macOS/Linux</button>
+                </div>
+                
+                <div id="Windows-Build" class="tabcontent" style="display: block;">
+                    <pre><code>.\gradlew composeApp:assembleDebug</code></pre>
+                </div>
+                
+                <div id="Unix-Build" class="tabcontent">
+                    <pre><code>./gradlew composeApp:assembleDebug</code></pre>
+                </div>
+                
+                <p class="success">APK 将生成在 <code>composeApp/build/outputs/apk/debug/composeApp-debug.apk</code></p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h4>安装到设备（可选）</h4>
+                <p>如果您想直接安装到连接的设备或模拟器：</p>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSubSubTab(event, 'Windows-Install')">Windows</button>
+                    <button class="tablinks" onclick="openSubSubTab(event, 'Unix-Install')">macOS/Linux</button>
+                </div>
+                
+                <div id="Windows-Install" class="tabcontent" style="display: block;">
+                    <pre><code>.\gradlew composeApp:installDebug</code></pre>
+                </div>
+                
+                <div id="Unix-Install" class="tabcontent">
+                    <pre><code>./gradlew composeApp:installDebug</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <div id="Android-Release" class="tabcontent">
+            <h3>构建 Release 版本 APK</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>配置签名信息</h4>
+                <p>在 <code>composeApp/build.gradle.kts</code> 文件中添加签名配置：</p>
+                <pre><code>android {
+    // 现有配置...
+    
+    signingConfigs {
+        create("release") {
+            storeFile = file("../keystore/release.keystore")
+            storePassword = "your_keystore_password"
+            keyAlias = "your_key_alias"
+            keyPassword = "your_key_password"
+        }
+    }
+    
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+}</code></pre>
+                <p class="warning">注意：不要在版本控制中提交包含实际密码的文件。建议使用环境变量或属性文件来存储敏感信息。</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>创建签名密钥（如果没有）</h4>
+                <p>如果您还没有密钥库，可以使用以下命令创建：</p>
+                <pre><code>keytool -genkey -v -keystore release.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000</code></pre>
+                <p>按照提示输入密码和其他信息。</p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h4>构建 Release APK</h4>
+                <p>在项目根目录运行以下命令：</p>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSubSubTab(event, 'Windows-Release')">Windows</button>
+                    <button class="tablinks" onclick="openSubSubTab(event, 'Unix-Release')">macOS/Linux</button>
+                </div>
+                
+                <div id="Windows-Release" class="tabcontent" style="display: block;">
+                    <pre><code>.\gradlew composeApp:assembleRelease</code></pre>
+                </div>
+                
+                <div id="Unix-Release" class="tabcontent">
+                    <pre><code>./gradlew composeApp:assembleRelease</code></pre>
+                </div>
+                
+                <p class="success">Release APK 将生成在 <code>composeApp/build/outputs/apk/release/composeApp-release.apk</code></p>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <h4>构建 App Bundle（Google Play 推荐）</h4>
+                <p>如果您计划在 Google Play 发布应用，建议构建 App Bundle：</p>
+                
+                <div class="tab">
+                    <button class="tablinks active" onclick="openSubSubTab(event, 'Windows-Bundle')">Windows</button>
+                    <button class="tablinks" onclick="openSubSubTab(event, 'Unix-Bundle')">macOS/Linux</button>
+                </div>
+                
+                <div id="Windows-Bundle" class="tabcontent" style="display: block;">
+                    <pre><code>.\gradlew composeApp:bundleRelease</code></pre>
+                </div>
+                
+                <div id="Unix-Bundle" class="tabcontent">
+                    <pre><code>./gradlew composeApp:bundleRelease</code></pre>
+                </div>
+                
+                <p class="success">App Bundle 将生成在 <code>composeApp/build/outputs/bundle/release/composeApp-release.aab</code></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="iOS" class="tabcontent">
+        <h2>iOS 应用构建</h2>
+        <p class="note">注意：iOS 应用构建需要 macOS 系统和 Xcode。</p>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openSubTab(event, 'iOS-Script')">使用脚本构建</button>
+            <button class="tablinks" onclick="openSubTab(event, 'iOS-Manual')">手动构建</button>
+            <button class="tablinks" onclick="openSubTab(event, 'iOS-Archive')">创建发布版本</button>
+        </div>
+        
+        <div id="iOS-Script" class="tabcontent" style="display: block;">
+            <h3>使用脚本构建 iOS 应用</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>构建 iOS Framework</h4>
+                <ol>
+                    <li>打开终端</li>
+                    <li>导航到项目根目录</li>
+                    <li>添加执行权限：<code>chmod +x run_project.sh</code></li>
+                    <li>运行脚本：<code>./run_project.sh</code></li>
+                    <li>在菜单中选择选项 <code>3: Build iOS Framework</code></li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>打开 Xcode 项目</h4>
+                <ol>
+                    <li>在脚本菜单中选择选项 <code>4: Open Xcode project</code></li>
+                    <li>或直接运行：<code>open iosApp/iosApp.xcodeproj</code></li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h4>在 Xcode 中构建和运行</h4>
+                <ol>
+                    <li>在 Xcode 中选择目标设备（模拟器或真机）</li>
+                    <li>点击运行按钮（▶️）或按 <code>Cmd+R</code></li>
+                </ol>
+            </div>
+        </div>
+        
+        <div id="iOS-Manual" class="tabcontent">
+            <h3>手动构建 iOS 应用</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>构建 Kotlin Framework</h4>
+                <p>在终端中运行以下命令：</p>
+                <pre><code># 用于 iOS 模拟器 (x64)
+./gradlew composeApp:linkDebugFrameworkIosX64
+
+# 用于 iOS 模拟器 (arm64，适用于 Apple Silicon Mac)
+./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64
+
+# 用于 iOS 真机 (arm64)
+./gradlew composeApp:linkDebugFrameworkIosArm64</code></pre>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>打开 Xcode 项目</h4>
+                <pre><code>open iosApp/iosApp.xcodeproj</code></pre>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h4>在 Xcode 中构建和运行</h4>
+                <ol>
+                    <li>在 Xcode 中选择目标设备（模拟器或真机）</li>
+                    <li>点击运行按钮（▶️）或按 <code>Cmd+R</code></li>
+                </ol>
+            </div>
+        </div>
+        
+        <div id="iOS-Archive" class="tabcontent">
+            <h3>创建 iOS 发布版本</h3>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h4>构建 Release 版本 Framework</h4>
+                <pre><code># 用于 iOS 真机 (arm64)
+./gradlew composeApp:linkReleaseFrameworkIosArm64</code></pre>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <h4>配置 Xcode 项目</h4>
+                <ol>
+                    <li>打开 Xcode 项目：<code>open iosApp/iosApp.xcodeproj</code></li>
+                    <li>选择 iosApp 项目</li>
+                    <li>选择 "Signing & Capabilities" 选项卡</li>
+                    <li>配置您的开发团队和签名证书</li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <h4>创建归档文件</h4>
+                <ol>
+                    <li>在 Xcode 中，选择 "Generic iOS Device" 作为目标</li>
+                    <li>选择菜单 "Product" > "Archive"</li>
+                    <li>等待归档过程完成</li>
+                </ol>
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <h4>导出 IPA 文件</h4>
+                <ol>
+                    <li>归档完成后，Xcode 会自动打开 Organizer 窗口</li>
+                    <li>选择您刚创建的归档</li>
+                    <li>点击 "Distribute App" 按钮</li>
+                    <li>选择分发方法（App Store Connect、Ad Hoc、Enterprise 或 Development）</li>
+                    <li>按照向导完成导出过程</li>
+                </ol>
+                <p class="success">IPA 文件将保存到您选择的导出位置</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="Troubleshooting" class="tabcontent">
+        <h2>常见问题排查</h2>
+        
+        <div class="step">
+            <h3>JAVA_HOME 配置问题</h3>
+            <div class="error">
+                <p><strong>错误信息</strong>: JAVA_HOME is set to an invalid directory</p>
+            </div>
+            <h4>解决方案：</h4>
+            <ol>
+                <li>确认您的 JDK 安装路径</li>
+                <li>正确设置 JAVA_HOME 环境变量</li>
+                <li>使用项目提供的脚本，它会自动尝试设置正确的 JAVA_HOME</li>
+            </ol>
+            <p>Windows 示例：</p>
+            <pre><code>$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot"</code></pre>
+            <p>macOS/Linux 示例：</p>
+            <pre><code>export JAVA_HOME=/path/to/your/jdk</code></pre>
+        </div>
+        
+        <div class="step">
+            <h3>Gradle 构建失败</h3>
+            <div class="error">
+                <p><strong>错误信息</strong>: Execution failed for task ':composeApp:compileKotlin'</p>
+            </div>
+            <h4>解决方案：</h4>
+            <ol>
+                <li>尝试清理项目：<code>./gradlew clean</code></li>
+                <li>检查 Kotlin 版本兼容性</li>
+                <li>检查依赖项是否有冲突</li>
+                <li>检查 Gradle 版本是否兼容</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>iOS 构建问题</h3>
+            <div class="error">
+                <p><strong>错误信息</strong>: Framework not found ComposeApp</p>
+            </div>
+            <h4>解决方案：</h4>
+            <ol>
+                <li>确保已成功构建 Kotlin Framework：<code>./gradlew composeApp:linkDebugFrameworkIosX64</code></li>
+                <li>检查 Xcode 项目中的框架搜索路径</li>
+                <li>确保使用了正确的目标架构（x64 用于模拟器，arm64 用于真机）</li>
+            </ol>
+        </div>
+        
+        <div class="step">

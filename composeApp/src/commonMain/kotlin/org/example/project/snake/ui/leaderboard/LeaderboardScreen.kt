@@ -2,11 +2,13 @@ package org.example.project.snake.ui.leaderboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,18 +118,16 @@ fun FilterSection(
             
             // 游戏模式筛选
             Text("游戏模式", style = MaterialTheme.typography.bodyMedium)
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                item {
-                    FilterChip(
-                        selected = selectedGameMode == null,
-                        onClick = { onGameModeSelected(null) },
-                        label = { Text("全部") }
-                    )
-                }
-                items(GameMode.values().size) { index ->
-                    val mode = GameMode.values()[index]
+                FilterChip(
+                    selected = selectedGameMode == null,
+                    onClick = { onGameModeSelected(null) },
+                    label = { Text("全部") }
+                )
+                GameMode.values().forEach { mode ->
                     FilterChip(
                         selected = selectedGameMode == mode,
                         onClick = { onGameModeSelected(mode) },
@@ -138,18 +138,16 @@ fun FilterSection(
             
             // 难度筛选
             Text("难度", style = MaterialTheme.typography.bodyMedium)
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                item {
-                    FilterChip(
-                        selected = selectedDifficulty == null,
-                        onClick = { onDifficultySelected(null) },
-                        label = { Text("全部") }
-                    )
-                }
-                items(Difficulty.values().size) { index ->
-                    val difficulty = Difficulty.values()[index]
+                FilterChip(
+                    selected = selectedDifficulty == null,
+                    onClick = { onDifficultySelected(null) },
+                    label = { Text("全部") }
+                )
+                Difficulty.values().forEach { difficulty ->
                     FilterChip(
                         selected = selectedDifficulty == difficulty,
                         onClick = { onDifficultySelected(difficulty) },
@@ -194,7 +192,7 @@ fun LeaderboardEntryCard(
                 when (rank) {
                     1, 2, 3 -> {
                         Icon(
-                            Icons.Default.EmojiEvents,
+                            Icons.Default.Star,
                             contentDescription = "奖杯",
                             tint = when (rank) {
                                 1 -> Color(0xFFFFD700) // 金色
@@ -230,7 +228,7 @@ fun LeaderboardEntryCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "蛇长: ${entry.snakeLength} | 时长: ${entry.formattedPlayTime}",
+                    text = "蛇长: ${entry.snakeLength} | 时长: ${formatPlayTime(entry.playTime)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -247,11 +245,32 @@ fun LeaderboardEntryCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "效率: ${String.format("%.1f", entry.efficiency)}",
+                    text = "效率: ${String.format("%.1f", calculateEfficiency(entry.score, entry.playTime))}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
+}
+
+/**
+ * 格式化游戏时长
+ */
+private fun formatPlayTime(playTime: Long): String {
+    val seconds = playTime / 1000
+    val minutes = seconds / 60
+    val remainingSeconds = seconds % 60
+    return if (minutes > 0) {
+        "${minutes}m ${remainingSeconds}s"
+    } else {
+        "${remainingSeconds}s"
+    }
+}
+
+/**
+ * 计算效率评分
+ */
+private fun calculateEfficiency(score: Int, playTime: Long): Double {
+    return if (playTime > 0) score.toDouble() / (playTime / 1000.0) else 0.0
 }

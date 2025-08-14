@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import org.example.project.snake.engine.SnakeGameEngine
 import org.example.project.snake.model.*
+import org.example.project.snake.model.FoodType
 
 /**
  * 游戏画布组件
@@ -238,9 +239,13 @@ private fun DrawScope.drawFood(
     
     // 根据食物类型选择颜色
     val color = when (food.type) {
-        Food.FoodType.NORMAL -> Color(0xFFFF5722)  // 橙红色普通食物
-        Food.FoodType.BONUS -> Color(0xFFFF9800)   // 橙色奖励食物
-        Food.FoodType.SUPER -> Color(0xFFFFC107)   // 黄色超级食物
+        FoodType.REGULAR -> Color.Red
+        FoodType.BONUS -> Color(0xFFFFD700) // 金色
+        FoodType.SPEED_UP -> Color.Blue
+        FoodType.SPEED_DOWN -> Color(0xFF800080) // 紫色
+        FoodType.GHOST -> Color.Gray
+        FoodType.SHRINK -> Color(0xFFFF4500) // 橙红色
+        else -> Color.Red // 默认为红色
     }
     
     // 绘制食物（圆形）
@@ -254,7 +259,7 @@ private fun DrawScope.drawFood(
     )
     
     // 为特殊食物添加光晕效果
-    if (food.type != Food.FoodType.NORMAL) {
+    if (food.type != FoodType.REGULAR) {
         drawCircle(
             color = color.copy(alpha = 0.3f),
             radius = radius * 1.5f,

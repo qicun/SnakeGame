@@ -43,10 +43,10 @@ data class LeaderboardEntry(
             }
             val modeMultiplier = when (gameMode) {
                 GameMode.CLASSIC -> 1.0
-                GameMode.ARCADE -> 1.1
-                GameMode.SURVIVAL -> 1.3
-                GameMode.TIME_ATTACK -> 1.2
-                GameMode.CHALLENGE -> 1.4
+                GameMode.BORDERLESS -> 1.1
+                GameMode.OBSTACLES -> 1.3
+                GameMode.TIME_CHALLENGE -> 1.2
+                else -> 1.0 // 默认乘数
             }
             
             return (baseScore + lengthBonus + timeBonus) * difficultyMultiplier * modeMultiplier

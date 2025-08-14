@@ -24,9 +24,12 @@ import org.example.project.snake.model.Direction
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SnakeGameScreen(modifier: Modifier = Modifier) {
+fun SnakeGameScreen(
+    dataRepository: org.example.project.snake.data.GameDataRepository,
+    modifier: Modifier = Modifier
+) {
     // 创建ViewModel实例
-    val viewModel = remember { SnakeViewModel() }
+    val viewModel = remember { SnakeViewModel(dataRepository) }
     
     // 观察游戏数据状态
     val gameData by viewModel.gameData.collectAsState()
@@ -173,6 +176,7 @@ fun GameOverDialog(
                     val reason = when (gameData.gameState.reason) {
                         org.example.project.snake.model.GameState.GameOverReason.WALL_COLLISION -> "撞墙了！"
                         org.example.project.snake.model.GameState.GameOverReason.SELF_COLLISION -> "撞到自己了！"
+                        org.example.project.snake.model.GameState.GameOverReason.TIME_UP -> "时间到了！"
                     }
                     Text("$reason")
                     Spacer(modifier = Modifier.height(8.dp))

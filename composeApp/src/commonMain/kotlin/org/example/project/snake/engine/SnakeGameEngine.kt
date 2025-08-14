@@ -59,14 +59,14 @@ class SnakeGameEngine(
         val initialSnake = Snake.createInitial(
             startPosition = Position(gameWidth / 2, gameHeight / 2),
             initialDirection = Direction.RIGHT,
-            initialLength = gameConfig.getInitialSnakeLength()
+            initialLength = gameConfig.getAdjustedInitialSnakeLength()
         )
         
         // 生成障碍物（如果游戏模式支持）
         obstacles = modeStrategy.generateObstacles(
             gameWidth = gameWidth,
             gameHeight = gameHeight,
-            occupiedPositions = initialSnake.getOccupiedPositions(),
+            occupiedPositions = initialSnake.getOccupiedPositions().toList(),
             maxObstacles = gameConfig.maxObstacles
         )
         
@@ -74,7 +74,7 @@ class SnakeGameEngine(
         val initialFood = Food.generateRandomWithType(
             gameWidth = gameWidth,
             gameHeight = gameHeight,
-            occupiedPositions = initialSnake.getOccupiedPositions() + obstacles,
+            occupiedPositions = (initialSnake.getOccupiedPositions() + obstacles).toList(),
             enableEffects = gameConfig.enableEffects,
             currentScore = 0
         )
@@ -145,7 +145,7 @@ class SnakeGameEngine(
         )
         
         // 检查碰撞
-        val collisionResult = checkCollisions(newSnake, effectResult)
+        val collisionResult = checkCollisions(newSnake)
         if (collisionResult != null) {
             // 游戏结束
             return currentData.copy(
@@ -178,7 +178,7 @@ class SnakeGameEngine(
             val newFood = Food.generateRandomWithType(
                 gameWidth = gameWidth,
                 gameHeight = gameHeight,
-                occupiedPositions = processedSnake.getOccupiedPositions() + currentData.obstacles,
+            occupiedPositions = (processedSnake.getOccupiedPositions() + currentData.obstacles).toList(),
                 enableEffects = gameConfig.enableEffects,
                 currentScore = currentGameState.score
             )

@@ -179,7 +179,7 @@ fun GameModeSelector(
                     
                     Column {
                         Text(
-                            text = "${mode.icon} ${mode.displayName}",
+                            text = mode.displayName,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = colorScheme.textPrimary
@@ -244,7 +244,7 @@ fun DifficultySelector(
                     
                     Column {
                         Text(
-                            text = "${difficulty.icon} ${difficulty.displayName}",
+                            text = difficulty.displayName,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = colorScheme.textPrimary

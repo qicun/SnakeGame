@@ -1,5 +1,6 @@
 package org.example.project.snake.config
 
+import kotlinx.serialization.Serializable
 import org.example.project.snake.model.Position
 
 /**
@@ -16,12 +17,15 @@ import org.example.project.snake.model.Position
  * @param maxObstacles 最大障碍物数量（仅在障碍物模式下有效）
  * @param timeLimitSeconds 时间限制（秒，仅在时间挑战模式下有效）
  */
+@Serializable
 data class GameConfig(
     val gameWidth: Int = 20,
     val gameHeight: Int = 20,
     val gameMode: GameMode = GameMode.CLASSIC,
     val difficulty: Difficulty = Difficulty.NORMAL,
+    val initialSpeed: Long = 300L,  // 添加初始速度属性
     val enableEffects: Boolean = true,
+    val maxObstacles: Int = 5,      // 添加最大障碍物数量属性
     val timeLimitSeconds: Int = 120,
     val initialSnakeLength: Int = 3,
     val baseSpeed: Long = 300L,
@@ -52,11 +56,11 @@ data class GameConfig(
     }
     
     /**
-     * 获取初始蛇的长度
+     * 获取根据难度调整的初始蛇长度
      * 
      * @return 根据难度调整的初始蛇长度
      */
-    fun getInitialSnakeLength(): Int {
+    fun getAdjustedInitialSnakeLength(): Int {
         return when (difficulty) {
             Difficulty.EASY -> 2
             Difficulty.NORMAL -> 3
@@ -87,8 +91,7 @@ data class GameConfig(
     fun isValid(): Boolean {
         return gameWidth > 5 && 
                gameHeight > 5 && 
-               initialSpeed > 50 && 
-               maxObstacles >= 0 && 
+               baseSpeed > 50 && 
                timeLimitSeconds > 0
     }
     
@@ -118,8 +121,8 @@ data class GameConfig(
                 gameHeight = 25,
                 difficulty = Difficulty.EXPERT,
                 initialSpeed = 200L,
-                enableEffects = true,
-                maxObstacles = 10
+                maxObstacles = 10,
+                enableEffects = true
             )
         }
         

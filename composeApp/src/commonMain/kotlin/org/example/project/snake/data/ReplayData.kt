@@ -1,6 +1,7 @@
 package org.example.project.snake.data
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Contextual
 import org.example.project.snake.config.GameConfig
 import org.example.project.snake.model.Direction
 import org.example.project.snake.model.Position
@@ -14,6 +15,7 @@ import org.example.project.snake.model.FoodType
 @Serializable
 data class ReplayData(
     val gameId: String,
+    @Contextual
     val gameConfig: GameConfig,
     val initialState: ReplayGameState,
     val actions: List<ReplayAction>,
@@ -149,7 +151,7 @@ data class ReplayData(
                         action.data["foodX"]?.toIntOrNull() ?: 0,
                         action.data["foodY"]?.toIntOrNull() ?: 0
                     )
-                    val foodType = action.data["foodType"]?.let { FoodType.valueOf(it) } ?: FoodType.NORMAL
+                    val foodType = action.data["foodType"]?.let { FoodType.valueOf(it) } ?: FoodType.REGULAR
                     currentState.copy(
                         foodPosition = foodPos,
                         foodType = foodType
@@ -171,9 +173,12 @@ data class ReplayData(
  */
 @Serializable
 data class ReplayGameState(
+    @Contextual
     val snakeHead: Position,
+    @Contextual
     val snakeBody: List<Position>,
     val direction: Direction,
+    @Contextual
     val foodPosition: Position?,
     val foodType: FoodType?,
     val score: Int,

@@ -161,6 +161,7 @@ private fun GameStatusText(gameState: GameState) {
             val reason = when (gameState.reason) {
                 GameState.GameOverReason.WALL_COLLISION -> "撞墙了！"
                 GameState.GameOverReason.SELF_COLLISION -> "撞到自己了！"
+                GameState.GameOverReason.TIME_UP -> "时间到了！"
             }
             "游戏结束 - $reason" to Color(0xFFF44336)
         }

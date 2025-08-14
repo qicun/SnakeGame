@@ -90,7 +90,19 @@ class GameDataRepositoryImpl(
             storage.putString(StorageKeys.GAME_RECORDS, jsonString)
             
             // 同时保存到排行榜
-            val leaderboardEntry = LeaderboardEntry.fromGameRecord(record)
+            val leaderboardEntry = LeaderboardEntry(
+                id = record.id,
+                playerName = "Player", // 默认玩家名
+                score = record.finalScore,
+                snakeLength = record.maxSnakeLength,
+                gameMode = record.gameMode,
+                difficulty = record.difficulty,
+                playTime = record.playTime,
+                foodEaten = record.foodEaten,
+                effectsUsed = record.effectsUsed,
+                timestamp = record.timestamp,
+                rank = 0 // 将在saveLeaderboardEntry中重新计算
+            )
             saveLeaderboardEntry(leaderboardEntry)
             
         } catch (e: Exception) {
@@ -100,7 +112,7 @@ class GameDataRepositoryImpl(
     
     override suspend fun getGameRecords(limit: Int): List<GameRecord> = withContext(Dispatchers.Default) {
         try {
-            val jsonString = storage.getString(StorageKeys.GAME_RECORDS, "[]")
+            val jsonString = storage.getString(StorageKeys.GAME_RECORDS, "[]") ?: "[]"
             val records = json.decodeFromString<List<GameRecord>>(jsonString)
             records.take(limit)
         } catch (e: Exception) {
@@ -123,7 +135,7 @@ class GameDataRepositoryImpl(
             records.removeAll { it.id == id }
             
             val jsonString = json.encodeToString(records)
-            storage.saveString(StorageKeys.GAME_RECORDS, jsonString)
+            storage.putString(StorageKeys.GAME_RECORDS, jsonString)
             
             // 同时删除回放数据
             deleteReplayData(id)
@@ -151,7 +163,7 @@ class GameDataRepositoryImpl(
             // 先检查缓存
             cachedStatistics?.let { return@withContext it }
             
-            val jsonString = storage.getString(StorageKeys.PLAYER_STATISTICS, "")
+            val jsonString = storage.getString(StorageKeys.PLAYER_STATISTICS, "") ?: ""
             val statistics = if (jsonString.isNotEmpty()) {
                 json.decodeFromString<PlayerStatistics>(jsonString)
             } else {
@@ -170,7 +182,7 @@ class GameDataRepositoryImpl(
     override suspend fun updatePlayerStatistics(statistics: PlayerStatistics) = withContext(Dispatchers.Default) {
         try {
             val jsonString = json.encodeToString(statistics)
-            storage.saveString(StorageKeys.PLAYER_STATISTICS, jsonString)
+            storage.putString(StorageKeys.PLAYER_STATISTICS, jsonString)
             
             // 更新缓存
             cachedStatistics = statistics
@@ -224,7 +236,7 @@ class GameDataRepositoryImpl(
         limit: Int
     ): List<LeaderboardEntry> = withContext(Dispatchers.Default) {
         try {
-            val jsonString = storage.getString(StorageKeys.LEADERBOARD_ENTRIES, "[]")
+            val jsonString = storage.getString(StorageKeys.LEADERBOARD_ENTRIES, "[]") ?: "[]"
             val allEntries = json.decodeFromString<List<LeaderboardEntry>>(jsonString)
             
             val filteredEntries = allEntries.filter { entry ->
@@ -282,7 +294,7 @@ class GameDataRepositoryImpl(
             // 先检查缓存
             cachedConfig?.let { return@withContext it }
             
-            val jsonString = storage.getString(StorageKeys.GAME_CONFIG, "")
+            val jsonString = storage.getString(StorageKeys.GAME_CONFIG, "") ?: ""
             val config = if (jsonString.isNotEmpty()) {
                 json.decodeFromString<GameConfig>(jsonString)
             } else {
@@ -311,7 +323,7 @@ class GameDataRepositoryImpl(
     override suspend fun getReplayData(gameId: String): ReplayData? = withContext(Dispatchers.Default) {
         try {
             val key = "${StorageKeys.REPLAY_DATA}_$gameId"
-            val jsonString = storage.getString(key, "")
+            val jsonString = storage.getString(key, "") ?: ""
             if (jsonString.isNotEmpty()) {
                 json.decodeFromString<ReplayData>(jsonString)
             } else {
@@ -401,7 +413,7 @@ class GameDataRepositoryImpl(
             var totalSize = 0L
             
             allKeys.forEach { key ->
-                val value = storage.getString(key, "")
+                val value = storage.getString(key, "") ?: ""
                 totalSize += value.toByteArray(Charsets.UTF_8).size
             }
             
@@ -554,7 +566,7 @@ class StatisticsManager(
             val last = kotlinx.datetime.LocalDate.parse(lastDate)
             val current = kotlinx.datetime.LocalDate.parse(currentDate)
             val daysBetween = current.toEpochDays() - last.toEpochDays()
-            daysBetween == 1L
+            daysBetween == 1
         } catch (e: Exception) {
             false
         }
@@ -636,9 +648,10 @@ class StatisticsManager(
      */
     private fun getCurrentWeekString(): String {
         val now = kotlinx.datetime.Clock.System.now()
-        val year = now.toString().substring(0, 4)
+        val dateString = now.toString().substring(0, 10) // YYYY-MM-DD
+        val year = dateString.substring(0, 4)
         // 简化的周计算，实际项目中需要更精确的实现
-        val dayOfYear = now.toEpochDays() % 365
+        val dayOfYear = now.epochSeconds / (24 * 3600) % 365
         val week = (dayOfYear / 7) + 1
         return "$year-W${week.toString().padStart(2, '0')}"
     }
